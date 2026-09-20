@@ -137,6 +137,8 @@
   gap: 1.1rem;
   padding: 1.35rem 1.5rem;
   background: var(--bg);
+  /* #root centra todo el texto; aqui lo devolvemos a la izquierda. */
+  text-align: left;
 }
 
 .step-n {
@@ -172,6 +174,7 @@
   border: 1px solid var(--border);
   border-radius: 11px;
   background: var(--social-bg);
+  text-align: left;
 }
 
 .card dt {
