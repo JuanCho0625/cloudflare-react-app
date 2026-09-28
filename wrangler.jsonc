@@ -5,18 +5,34 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "cloudflare-react-app",
+	"main": "./worker/index.ts",
 	"compatibility_date": "2026-09-16",
 	"workers_dev": true,
 	/**
 	 * Static Assets: sirve el build de Vite (dist/) desde el Worker.
 	 * "single-page-application" hace que cualquier ruta desconocida
 	 * devuelva index.html, que es lo que necesita una SPA de React.
+	 * "run_worker_first" exceptua a /api/*, para que esas rutas las
+	 * atienda el Worker y no se las trague el index.html de la SPA.
 	 * https://developers.cloudflare.com/workers/static-assets/
 	 */
 	"assets": {
 		"directory": "./dist",
-		"not_found_handling": "single-page-application"
+		"not_found_handling": "single-page-application",
+		"run_worker_first": ["/api/*"]
 	},
+	/**
+	 * Base de datos D1 (SQLite). El binding "DB" es el que usa el Worker
+	 * en worker/index.ts como env.DB.
+	 * https://developers.cloudflare.com/d1/
+	 */
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "practica6-db",
+			"database_id": "8742da04-3c1e-42c6-bc79-8e092d639bf1"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},

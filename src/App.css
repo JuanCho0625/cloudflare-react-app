@@ -225,3 +225,72 @@
     padding: 1.1rem 1.15rem;
   }
 }
+
+/* ---------- Tabla de datos de D1 ---------- */
+
+.section-lede {
+  margin: -0.75rem 0 1.25rem;
+  font-size: 0.95rem;
+}
+
+.section-lede code {
+  padding: 0.1em 0.4em;
+  border-radius: 5px;
+  background: var(--code-bg);
+  font: 0.9em var(--mono);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.92rem;
+  text-align: left;
+}
+
+.tabla th {
+  padding: 0.7rem 1rem;
+  background: var(--social-bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.tabla td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla .num {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.estado {
+  margin: 0.9rem 0 0;
+  font-size: 0.88rem;
+}
+
+.estado.ok {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.estado.error {
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-bg);
+  text-align: left;
+}

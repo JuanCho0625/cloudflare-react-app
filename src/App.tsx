@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
@@ -6,6 +6,22 @@ import './App.css'
 declare const __BUILD_TIME__: string
 
 const REPO = 'https://github.com/JuanCho0625/cloudflare-react-app'
+
+interface Libro {
+  id: number
+  titulo: string
+  autor: string
+  anio: number
+}
+
+interface RespuestaLibros {
+  ok: boolean
+  fuente?: string
+  consulta?: string
+  total?: number
+  libros?: Libro[]
+  error?: string
+}
 
 const pipeline = [
   { n: '01', title: 'git push', detail: 'El codigo se sube a la rama main del repositorio.' },
@@ -19,11 +35,24 @@ const stack = [
   { label: 'Lenguaje', value: 'TypeScript' },
   { label: 'Andamiaje', value: 'create-cloudflare (C3)' },
   { label: 'Runtime', value: 'Cloudflare Workers' },
-  { label: 'Entrega', value: 'Workers Static Assets' },
+  { label: 'Base de datos', value: 'Cloudflare D1 (SQLite)' },
 ]
 
 function App() {
   const [count, setCount] = useState(0)
+  const [datos, setDatos] = useState<RespuestaLibros | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/libros')
+      .then(async (res) => {
+        const json = (await res.json()) as RespuestaLibros
+        if (!res.ok || !json.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
+        return json
+      })
+      .then(setDatos)
+      .catch((e: Error) => setError(e.message))
+  }, [])
 
   const buildTime = new Date(__BUILD_TIME__).toLocaleString('es-MX', {
     dateStyle: 'long',
@@ -61,6 +90,48 @@ function App() {
           </button>
         </div>
       </header>
+
+      <section className="section">
+        <h2>Datos leidos desde Cloudflare D1</h2>
+        <p className="section-lede">
+          El Worker consulta la base de datos SQLite y expone el resultado en{' '}
+          <code>/api/libros</code>. Esta tabla se llena con esa respuesta.
+        </p>
+
+        {error && (
+          <p className="estado error">No se pudo leer la base de datos: {error}</p>
+        )}
+
+        {!error && !datos && <p className="estado">Consultando la base de datos...</p>}
+
+        {datos?.libros && (
+          <>
+            <table className="tabla">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Titulo</th>
+                  <th>Autor</th>
+                  <th>Año</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datos.libros.map((libro) => (
+                  <tr key={libro.id}>
+                    <td className="num">{libro.id}</td>
+                    <td>{libro.titulo}</td>
+                    <td>{libro.autor}</td>
+                    <td className="num">{libro.anio}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="estado ok">
+              {datos.total} registros leidos desde {datos.fuente}
+            </p>
+          </>
+        )}
+      </section>
 
       <section className="section">
         <h2>Como llega el codigo a produccion</h2>
