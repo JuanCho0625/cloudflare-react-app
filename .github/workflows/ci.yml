@@ -1,0 +1,99 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Si llegan dos pushes seguidos, cancela el anterior en lugar de desplegar
+# dos veces sobre el mismo entorno.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build, pruebas unitarias y cobertura
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Pruebas unitarias con reporte de cobertura
+        run: npm run test:coverage
+
+      - name: Resumen de cobertura en la pagina del workflow
+        if: always()
+        run: |
+          echo "## Cobertura de pruebas" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          node scripts/coverage-table.mjs >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build del proyecto
+        run: npm run build
+
+      - name: Publicar artefacto del sitio
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitio-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar artefacto del reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-cobertura
+          path: coverage/
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-produccion:
+    name: Publicar en Cloudflare (produccion)
+    needs: build-test
+    # Solo en main: en los pull requests se queda en build y pruebas.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # No se vuelve a compilar: se reutiliza el artefacto que produjo el job
+      # anterior, para desplegar exactamente lo que se probo.
+      - name: Recuperar el artefacto del sitio
+        uses: actions/download-artifact@v4
+        with:
+          name: sitio-dist
+          path: dist
+
+      - name: Desplegar al proyecto de produccion
+        run: npx wrangler deploy --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
