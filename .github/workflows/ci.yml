@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Descargar el repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Preparar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -49,7 +49,7 @@ jobs:
         run: npm run build
 
       - name: Publicar artefacto del sitio
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sitio-dist
           path: dist/
@@ -57,7 +57,7 @@ jobs:
           retention-days: 30
 
       - name: Publicar artefacto del reporte de cobertura
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reporte-cobertura
           path: coverage/
@@ -73,10 +73,10 @@ jobs:
 
     steps:
       - name: Descargar el repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Preparar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -87,7 +87,7 @@ jobs:
       # No se vuelve a compilar: se reutiliza el artefacto que produjo el job
       # anterior, para desplegar exactamente lo que se probo.
       - name: Recuperar el artefacto del sitio
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: sitio-dist
           path: dist
